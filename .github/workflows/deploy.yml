@@ -1,0 +1,53 @@
+name: Deploy to Cloud Run
+
+# v1.0.0 のような "v" で始まるタグを push したときに実行
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: ${{ vars.GCP_REGION }}
+  SERVICE: simple-todo-app
+  REPOSITORY: simple-todo-app
+  IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/simple-todo-app/simple-todo-app:${{ github.ref_name }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Workload Identity 連携(鍵なし認証)に必要
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Google Cloud に認証
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - name: gcloud をセットアップ
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Docker を Artifact Registry に認証
+        run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+
+      - name: Docker イメージをビルドして push
+        run: |
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+
+      - name: Cloud Run にデプロイ
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE }}
+          region: ${{ env.REGION }}
+          image: ${{ env.IMAGE }}
+          flags: '--allow-unauthenticated --port=8080'
+
+      - name: URL を表示
+        run: echo "デプロイ完了 → ${{ steps.deploy.outputs.url }}"

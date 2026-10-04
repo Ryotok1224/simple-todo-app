@@ -35,8 +35,22 @@ npm run dev
 | `npm run preview` | ビルド結果をローカルで確認 |
 | `npm run lint` | コードのチェック |
 
+## デプロイ（GCP Cloud Run）
+
+`v1.0.0` のようなタグを push すると、GitHub Actions が自動で Cloud Run にデプロイします。
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+初回の GCP / GitHub の設定手順は [docs/deploy-gcp.md](docs/deploy-gcp.md) を見てください。
+
 ## ファイル構成
 
 - `src/App.tsx` … アプリ本体（画面とロジック）
 - `src/App.css` … アプリのスタイル
 - `src/index.css` … 全体のスタイル
+- `Dockerfile` / `nginx.conf` … Cloud Run で動かすためのコンテナ設定
+- `.github/workflows/ci.yml` … PR / main への push 時にビルドとチェック
+- `.github/workflows/deploy.yml` … タグ push 時に Cloud Run へデプロイ
