@@ -3,7 +3,7 @@
 `v1.0.0` のようなタグを GitHub に push すると、GitHub Actions
 （`.github/workflows/deploy.yml`）が自動で以下を行います。
 
-1. Docker イメージをビルド（`Dockerfile`）
+1. Docker イメージをビルド（`Dockerfile`。画面と API サーバーを1つのコンテナにまとめる）
 2. Artifact Registry に push
 3. Cloud Run にデプロイし、公開 URL を表示
 
@@ -89,7 +89,36 @@ echo "GCP_WORKLOAD_IDENTITY_PROVIDER=projects/${PROJECT_NUMBER}/locations/global
 
 ※ どれもパスワードではないので Secrets ではなく Variables で大丈夫です。
 
-## 3. デプロイする（毎回）
+## 3. Jev（AI自動判定）を有効にする（任意・初回だけ）
+
+この手順をしなくてもアプリはデプロイできます（Jev の自動判定が OFF になるだけです）。
+
+1. https://console.typesafe.ai/ で TypeSafe の API キーを発行する
+2. Cloud Shell で以下を実行する（最初の行は自分の値に書き換え）
+
+```bash
+PROJECT_ID=your-project-id          # ← 自分のプロジェクトID
+
+gcloud config set project "$PROJECT_ID"
+gcloud services enable secretmanager.googleapis.com
+
+# API キーを Secret Manager に保存する
+# 実行すると入力待ちになるので、API キーを貼り付けて Enter → Ctrl+D を押す
+gcloud secrets create typesafe-api-key --data-file=-
+
+# Cloud Run（アプリ本体）がこのキーを読めるようにする
+PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
+gcloud secrets add-iam-policy-binding typesafe-api-key \
+  --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
+  --role=roles/secretmanager.secretAccessor
+```
+
+3. GitHub の Variables に `TYPESAFE_SECRET_NAME` = `typesafe-api-key` を追加する
+
+※ API キーそのものは GitHub にもコードにも置きません。Cloud Run が起動するときに Secret Manager から読み込みます。
+※ キーを変えたいときは `gcloud secrets versions add typesafe-api-key --data-file=-` で新しい値を保存し、もう一度タグを push します。
+
+## 4. デプロイする（毎回）
 
 main ブランチの最新状態でタグを作って push します。
 

@@ -48,6 +48,8 @@ jobs:
           region: ${{ env.REGION }}
           image: ${{ env.IMAGE }}
           flags: '--allow-unauthenticated --port=8080'
+          # Variables に TYPESAFE_SECRET_NAME があれば、Secret Manager の API キーを渡す（Jev が有効になる）
+          secrets: ${{ vars.TYPESAFE_SECRET_NAME && format('TYPESAFE_API_KEY={0}:latest', vars.TYPESAFE_SECRET_NAME) || '' }}
 
       - name: URL を表示
         run: echo "デプロイ完了 → ${{ steps.deploy.outputs.url }}"

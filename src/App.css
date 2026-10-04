@@ -82,7 +82,7 @@ button:disabled {
   word-break: break-all;
 }
 
-.todo-list li.done span {
+.todo-list li.done .todo-text {
   text-decoration: line-through;
   color: #9ca3af;
 }
@@ -111,4 +111,59 @@ button:disabled {
   margin-top: 16px;
   font-size: 0.9rem;
   color: #6b7280;
+}
+
+.jev-status {
+  margin: -8px 0 16px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0 4px;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: none;
+  background: #e5e7eb;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.badge.category {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge.priority-low {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.badge.priority-medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge.priority-high {
+  background: #fed7aa;
+  color: #9a3412;
+}
+
+.badge.urgent {
+  background: #fee2e2;
+  color: #b91c1c;
+  font-weight: bold;
+}
+
+.badge.retry {
+  background: #fee2e2;
+  color: #b91c1c;
 }
